@@ -308,15 +308,20 @@ void main() {
 
     test('skips occurrences whose dateTime is in the past', () async {
       final s = schedule();
-      final now = DateTime.now();
-      final pastTime =
-          TimeOfDay.fromDateTime(now.subtract(const Duration(hours: 1)));
-      final futureTime =
-          TimeOfDay.fromDateTime(now.add(const Duration(hours: 1)));
+      // Use fixed dates a full day on either side of today so the test does
+      // not depend on the current time of day (a now±1h offset wraps around
+      // midnight and makes this flaky).
+      const noon = TimeOfDay(hour: 12, minute: 0);
 
       when(occurrences.upcoming(days: 5)).thenReturn([
-        occurrence(schedule: s, date: Date.today(), time: pastTime),
-        occurrence(schedule: s, date: Date.today(), time: futureTime),
+        occurrence(
+            schedule: s,
+            date: Date.today().subtract(const Duration(days: 1)),
+            time: noon),
+        occurrence(
+            schedule: s,
+            date: Date.today().add(const Duration(days: 1)),
+            time: noon),
       ]);
       final sut = NotificationScheduler(occurrences, preferences);
 
